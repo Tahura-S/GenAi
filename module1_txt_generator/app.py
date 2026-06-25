@@ -1,49 +1,42 @@
-#This was to check if the api key was loaded successfully or not
-# from dotenv import load_dotenv
-# import os
-
-# load_dotenv()
-
-# api_key = os.getenv("GEMINI_API_KEY")
-
-# if api_key:
-#     print("API Key loaded successfully!")
-#     print(f"First 10 chars: {api_key[:10]}")
-# else:
-#     print("API Key not found!")
-
-#actually implementation starts herefrom dotenv import load_dotenv
 from dotenv import load_dotenv
-from google import genai
+from groq import Groq
 import os
-from google.genai import types
 
-# Load .env file
+# Load .env
 load_dotenv()
 
-# Create client
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
+# Create Groq client
+client = Groq(
+    api_key=os.getenv("GROQ_API_KEY")
 )
 
-
-
-# Generate response
+#prompt
 prompt = input("Enter your prompt: ")
 
-try:
-    print("Sending request...")
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            temperature=0.2
-        )
-    )
+# Send request
+response = client.chat.completions.create(
+    model="llama-3.1-8b-instant",
+    temperature=1.0,
+    top_p=1.0,
+    max_tokens=200,
+    presence_penalty=2.0,
+    messages=[
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ]
 
-    print("\nGenerated Response:\n")
-    print(response.text)
-
-except Exception as e:
-    print("\nError:")
-    print(e)
+    # messages=[
+    # {
+    #     "role": "system",
+    #     "content": "You are teaching a 10-year-old child"
+    # },
+    # {
+    #     "role": "user",
+    #     "content": prompt
+    # }
+    # ]
+)
+print("\nGenerated Response:\n")
+print(response.choices[0].message.content)
