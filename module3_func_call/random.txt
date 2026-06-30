@@ -1,0 +1,75 @@
+I want to implement the exact same Function Calling project that I built in Python, but using TypeScript and the Groq API (OpenAI-compatible SDK).
+
+Do NOT use any frameworks like Express, Next.js, or LangChain.
+Keep it as a simple Node.js console application.
+
+The goal is to understand how Function Calling works in TypeScript, not to build a production application.
+
+Project Requirements:
+
+- Use TypeScript.
+- Use the official OpenAI-compatible SDK supported by Groq.
+- Use dotenv for API keys.
+- Use Zod where appropriate for validating tool arguments or outputs.
+- Organize the project cleanly.
+
+Suggested project structure:
+
+module3_func_call_ts/
+│
+├── src/
+│   ├── app.ts
+│   ├── tools.ts
+│   └── types.ts (if needed)
+│
+├── .env
+├── package.json
+├── tsconfig.json
+└── README.md
+
+Implement the exact same employee leave balance example that was implemented in Python.
+
+The tool should be:
+
+get_leave_balance(employee_name: string)
+
+Use a simple in-memory object as the employee database.
+
+The implementation should follow the complete Function Calling lifecycle:
+
+1. Send the user's prompt.
+2. Send the available tool definitions.
+3. Receive a tool call.
+4. Parse the tool arguments.
+5. Execute the TypeScript function.
+6. Send the tool result back to the LLM.
+7. Receive the final natural language response.
+
+Do not skip any step.
+
+While implementing, explain:
+
+- why each file exists
+- why each package is needed
+- why the tool schema is written separately from the function
+- how tool_calls are parsed
+- why there are two API calls
+- how Zod improves reliability
+- how TypeScript types help compared to plain JavaScript
+
+After the basic implementation is complete, gradually refactor the project by adding:
+
+- function registry
+- reusable runAssistant() function
+- proper error handling
+- logging
+- async/await improvements
+- retry with exponential backoff
+
+Do not generate the entire project at once.
+
+Teach it incrementally, one step at a time, similar to a classroom tutorial.
+
+After every step, wait for confirmation before moving to the next step.
+
+Focus on understanding rather than writing code quickly.
