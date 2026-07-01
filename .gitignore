@@ -1,6 +1,9 @@
 # Virtual Environment
 venv/
 
+# Generated indexes
+module5_semantic_search/index/
+
 # Environment Variables
 .env
 .env.*

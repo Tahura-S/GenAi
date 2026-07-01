@@ -2,7 +2,8 @@ from pathlib import Path
 
 from parser import parse_markdown
 
-POLICIES_DIR = Path("data/policies")
+MODULE_ROOT = Path(__file__).resolve().parent.parent
+POLICIES_DIR = MODULE_ROOT / "data" / "policies"
 
 
 def load_documents():
@@ -16,7 +17,7 @@ def load_documents():
 
     documents = []
 
-    for file_path in POLICIES_DIR.rglob("*.md"):
+    for file_path in sorted(POLICIES_DIR.rglob("*.md")):
 
         metadata, content = parse_markdown(file_path)
 
@@ -24,7 +25,7 @@ def load_documents():
             "id": file_path.stem,
             "metadata": metadata,
             "content": content,
-            "source_path": str(file_path),
+            "source_path": str(file_path.relative_to(MODULE_ROOT)),
         }
 
         documents.append(document)

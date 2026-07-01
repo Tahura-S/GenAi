@@ -1,0 +1,9 @@
+sentence-transformers==5.6.0
+faiss-cpu
+PyYAML==6.0.3
+numpy==2.5.0
+
+# Fixes SSL cert errors when downloading the embedding model from
+# huggingface.co on machines behind a corporate/antivirus TLS proxy
+# (pypi.org works but huggingface.co fails cert verification without this).
+pip-system-certs

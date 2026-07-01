@@ -1,3 +1,4 @@
+import re
 from typing import List
 
 CHUNK_SIZE = 1000
@@ -10,22 +11,41 @@ SEPARATORS = [
     " ",      # Word
 ]
 
+SECTION_PATTERN = re.compile(r"(?m)^##\s+(.+)$")
+
+
+def split_into_sections(content: str) -> List[dict]:
+    """
+    Document-aware split: break the body on markdown '## ' headers so each
+    policy section (Purpose, Scope, Policy, ...) stays intact as one unit.
+    """
+    matches = list(SECTION_PATTERN.finditer(content))
+
+    if not matches:
+        return [{"heading": None, "text": content.strip()}]
+
+    sections = []
+    for i, match in enumerate(matches):
+        heading = match.group(1).strip()
+        start = match.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(content)
+        sections.append({"heading": heading, "text": content[start:end].strip()})
+
+    return sections
+
 
 def recursive_split(text: str, separators: List[str]) -> List[str]:
     """
-    Recursively split text until every chunk is <= CHUNK_SIZE.
+    Fallback for sections still bigger than CHUNK_SIZE: recursively split on
+    decreasing granularity of separators until every chunk fits.
     """
 
-    # Base case
     if len(text) <= CHUNK_SIZE:
-        return [text.strip()]
+        return [text.strip()] if text.strip() else []
 
-    # No separators left
     if not separators:
-        return [
-            text[i:i + CHUNK_SIZE]
-            for i in range(0, len(text), CHUNK_SIZE)
-        ]
+        step = CHUNK_SIZE - CHUNK_OVERLAP
+        return [text[i:i + CHUNK_SIZE] for i in range(0, len(text), step)]
 
     separator = separators[0]
     pieces = text.split(separator)
@@ -60,36 +80,47 @@ def recursive_split(text: str, separators: List[str]) -> List[str]:
 
 def chunk_document(document: dict) -> List[dict]:
     """
-    Split one document into chunks.
+    Chunk one document: split by markdown section first (document-aware),
+    then recursively split any section still larger than CHUNK_SIZE.
     """
 
-    raw_chunks = recursive_split(
-        document["content"],
-        SEPARATORS
-    )
+    sections = split_into_sections(document["content"])
 
     chunks = []
+    chunk_index = 0
 
-    for index, chunk in enumerate(raw_chunks):
-        chunks.append(
-            {
-                "chunk_id": f'{document["id"]}_chunk_{index + 1}',
-                "document_id": document["id"],
-                "content": chunk,
-                "metadata": document["metadata"],
-                "source_path": document["source_path"],
-            }
+    for section in sections:
+        heading = section["heading"]
+        text = section["text"]
+
+        if not text:
+            continue
+
+        pieces = (
+            [text]
+            if len(text) <= CHUNK_SIZE
+            else recursive_split(text, SEPARATORS)
         )
 
+        for piece in pieces:
+            piece = piece.strip()
+            if not piece:
+                continue
+
+            chunk_index += 1
+            # Prefix the section heading so the chunk stays understandable
+            # in isolation once it's embedded and retrieved out of context.
+            content = f"{heading}\n{piece}" if heading else piece
+
+            chunks.append(
+                {
+                    "chunk_id": f'{document["id"]}_chunk_{chunk_index}',
+                    "document_id": document["id"],
+                    "section": heading,
+                    "content": content,
+                    "metadata": document["metadata"],
+                    "source_path": document["source_path"],
+                }
+            )
+
     return chunks
-
-
-# from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-# text_splitter = RecursiveCharacterTextSplitter(
-#     chunk_size=1000,
-#     chunk_overlap=200,
-#     separators=["\n\n", "\n", ". ", " "],
-# )
-
-# chunks = text_splitter.split_text(text)
